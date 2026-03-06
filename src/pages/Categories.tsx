@@ -29,7 +29,7 @@ function BottomSheet({ open, onClose, title, children }: { open: boolean; onClos
           <h2 className="text-base font-semibold text-gray-800">{title}</h2>
           <button onClick={onClose} className="p-1 text-gray-400 rounded-lg"><X size={20} /></button>
         </div>
-        <div className="overflow-y-auto flex-1">{children}</div>
+        <div className="overflow-y-auto flex-1">{children} TEST</div>
       </div>
     </div>
   );
