@@ -13,6 +13,37 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(amount);
 }
 
+function formatCompact(amount: number) {
+  if (Math.abs(amount) >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(amount) >= 1_000) return `$${(amount / 1_000).toFixed(0)}k`;
+  return `$${amount}`;
+}
+
+function BottomSheet({ open, onClose, title, sub, children }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[92dvh] flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 bg-gray-200 rounded-full" />
+        </div>
+        <div className="flex items-start justify-between px-5 pt-2 pb-3 sm:pt-4 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">{title}</h2>
+            {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+          </div>
+          <button onClick={onClose} className="p-1 text-gray-400 rounded-lg ml-2"><X size={20} /></button>
+        </div>
+        <div className="overflow-y-auto flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 const COLORS = [
   '#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444',
   '#10b981', '#f97316', '#06b6d4', '#ec4899', '#84cc16',
@@ -98,7 +129,7 @@ export default function Savings() {
     setShowGoalForm(true);
   }
 
-  function handleGoalSubmit(e: React.FormEvent) {
+  function handleGoalSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     const amount = parseFloat(goalForm.targetAmount);
     if (!goalForm.name.trim() || !amount) return;
@@ -119,7 +150,7 @@ export default function Savings() {
     deleteSavingsGoal(id);
   }
 
-  function handleContribSubmit(e: React.FormEvent) {
+  function handleContribSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!selectedGoalId || !contribForm.amount) return;
     addContribution({
@@ -158,14 +189,14 @@ export default function Savings() {
             <PiggyBank size={16} className="text-emerald-500" />
             <p className="text-xs text-gray-500">Total ahorrado</p>
           </div>
-          <p className="text-xl font-bold text-emerald-600">{formatCurrency(totalSaved)}</p>
+          <p className="text-xl font-bold text-emerald-600">{formatCompact(totalSaved)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp size={16} className="text-violet-500" />
             <p className="text-xs text-gray-500">Objetivo total</p>
           </div>
-          <p className="text-xl font-bold text-gray-800">{formatCurrency(totalTarget)}</p>
+          <p className="text-xl font-bold text-gray-800">{formatCompact(totalTarget)}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-1">
@@ -359,21 +390,15 @@ export default function Savings() {
       )}
 
       {/* Goal form modal */}
-      {showGoalForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800">{editingGoalId ? 'Editar meta' : 'Nueva meta de ahorro'}</h2>
-              <button onClick={() => setShowGoalForm(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleGoalSubmit} className="px-6 py-5 space-y-4">
+      <BottomSheet open={showGoalForm} onClose={() => setShowGoalForm(false)} title={editingGoalId ? 'Editar meta' : 'Nueva meta de ahorro'}>
+        <form onSubmit={handleGoalSubmit} className="px-5 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la meta *</label>
                 <input
                   type="text" required value={goalForm.name}
                   onChange={e => setGoalForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="Ej: Viaje a Europa"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -382,7 +407,7 @@ export default function Savings() {
                   type="number" min="0" step="any" required value={goalForm.targetAmount}
                   onChange={e => setGoalForm(f => ({ ...f, targetAmount: e.target.value }))}
                   placeholder="0"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -390,7 +415,7 @@ export default function Savings() {
                 <input
                   type="date" value={goalForm.deadline}
                   onChange={e => setGoalForm(f => ({ ...f, deadline: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -424,65 +449,57 @@ export default function Savings() {
                   {goalForm.targetAmount && <p className="text-xs text-gray-400">{formatCurrency(parseFloat(goalForm.targetAmount) || 0)}</p>}
                 </div>
               </div>
-              <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setShowGoalForm(false)} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button type="submit" className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                  <Check size={16} /> Guardar
-                </button>
-              </div>
-            </form>
+          <div className="flex gap-3 pb-2">
+            <button type="button" onClick={() => setShowGoalForm(false)} className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-medium">Cancelar</button>
+            <button type="submit" className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl text-sm font-medium">
+              <Check size={16} /> Guardar
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </BottomSheet>
 
       {/* Contribution modal */}
-      {showContribForm && selectedGoal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-              <div>
-                <h2 className="text-base font-semibold text-gray-800">Registrar aporte</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{selectedGoal.icon} {selectedGoal.name}</p>
-              </div>
-              <button onClick={() => setShowContribForm(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleContribSubmit} className="px-6 py-5 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto *</label>
-                <input
-                  type="number" min="0" step="any" required value={contribForm.amount}
-                  onChange={e => setContribForm(f => ({ ...f, amount: e.target.value }))}
-                  placeholder="0" autoFocus
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
-                <input
-                  type="date" required value={contribForm.date}
-                  onChange={e => setContribForm(f => ({ ...f, date: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nota (opcional)</label>
-                <input
-                  type="text" value={contribForm.note}
-                  onChange={e => setContribForm(f => ({ ...f, note: e.target.value }))}
-                  placeholder="Ej: Quincena de marzo"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setShowContribForm(false)} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">Cancelar</button>
-                <button type="submit" className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-                  <Check size={16} /> Guardar
-                </button>
-              </div>
-            </form>
+      <BottomSheet
+        open={showContribForm && !!selectedGoal}
+        onClose={() => setShowContribForm(false)}
+        title="Registrar aporte"
+        sub={selectedGoal ? `${selectedGoal.icon} ${selectedGoal.name}` : undefined}
+      >
+        <form onSubmit={handleContribSubmit} className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Monto *</label>
+            <input
+              type="number" inputMode="decimal" min="0" step="any" required value={contribForm.amount}
+              onChange={e => setContribForm(f => ({ ...f, amount: e.target.value }))}
+              placeholder="0"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+            <input
+              type="date" required value={contribForm.date}
+              onChange={e => setContribForm(f => ({ ...f, date: e.target.value }))}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nota (opcional)</label>
+            <input
+              type="text" value={contribForm.note}
+              onChange={e => setContribForm(f => ({ ...f, note: e.target.value }))}
+              placeholder="Ej: Quincena de marzo"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex gap-3 pb-2">
+            <button type="button" onClick={() => setShowContribForm(false)} className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-medium">Cancelar</button>
+            <button type="submit" className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl text-sm font-medium">
+              <Check size={16} /> Guardar
+            </button>
+          </div>
+        </form>
+      </BottomSheet>
     </div>
   );
 }

@@ -12,16 +12,16 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-3">
-          <Wallet className="text-emerald-600" size={28} />
-          <span className="text-xl font-bold text-gray-800">Mi Dinero</span>
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
+          <Wallet className="text-emerald-600" size={24} />
+          <span className="text-lg font-bold text-gray-800">Mi Dinero</span>
         </div>
       </header>
 
-      <div className="flex flex-1 max-w-6xl mx-auto w-full px-4 py-6 gap-6">
-        {/* Sidebar */}
-        <nav className="w-52 shrink-0">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full md:px-4 md:py-6 md:gap-6">
+        {/* Sidebar — desktop only */}
+        <nav className="hidden md:block w-52 shrink-0">
           <ul className="space-y-1">
             {navItems.map(({ to, label, icon: Icon }) => (
               <li key={to}>
@@ -45,10 +45,38 @@ export default function Layout() {
         </nav>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 px-4 py-4 md:px-0 md:py-0 pb-24 md:pb-0">
           <Outlet />
         </main>
       </div>
+
+      {/* Bottom nav — mobile only */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 safe-area-pb">
+        <ul className="flex">
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <li key={to} className="flex-1">
+              <NavLink
+                to={to}
+                end={to === '/'}
+                className={({ isActive }) =>
+                  `flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+                    isActive ? 'text-emerald-600' : 'text-gray-400'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-emerald-50' : ''}`}>
+                      <Icon size={20} />
+                    </div>
+                    <span className="truncate w-full text-center px-1">{label}</span>
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }
