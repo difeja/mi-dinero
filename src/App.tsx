@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { FinanceProvider } from './context/FinanceContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -9,7 +9,7 @@ import Savings from './pages/Savings';
 export default function App() {
   return (
     <FinanceProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
@@ -18,7 +18,7 @@ export default function App() {
             <Route path="categorias" element={<Categories />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </FinanceProvider>
   );
 }
